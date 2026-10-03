@@ -1,0 +1,30 @@
+name: HA Camera Face ID (Free Open Source)
+version: 1.0.0
+slug: ha_camera_face_id
+description: Nhận diện khuôn mặt local từ camera Home Assistant bằng AI InsightFace (100% Miễn phí, Không License Key).
+arch:
+  - amd64
+  - aarch64
+startup: application
+boot: auto
+init: false
+homeassistant_api: true
+ingress: true
+ingress_port: 8099
+panel_icon: mdi:face-recognition
+options:
+  mqtt_host: "core-mosquitto"
+  mqtt_port: 1883
+  mqtt_user: ""
+  mqtt_password: ""
+  similarity_threshold: 0.55
+  min_face_size: 50
+  scan_interval_seconds: 2
+schema:
+  mqtt_host: str
+  mqtt_port: int
+  mqtt_user: "str?"
+  mqtt_password: "str?"
+  similarity_threshold: float
+  min_face_size: int
+  scan_interval_seconds: int

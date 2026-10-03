@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HA Camera Face ID (Free Open Source)</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        body { background-color: #f8f9fa; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+        .card { border-radius: 12px; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .nav-pills .nav-link { font-weight: 600; border-radius: 8px; }
+        .nav-pills .nav-link.active { background-color: #0d6efd; }
+        .event-card-img { width: 90px; height: 90px; object-fit: cover; border-radius: 8px; }
+        .badge-known { background-color: #198754; }
+        .badge-unknown { background-color: #dc3545; }
+    </style>
+</head>
+<body>
+<div class="container py-4">
+    <!-- Header -->
+    <div class="d-flex align-items-center justify-content-between pb-3 mb-4 border-bottom">
+        <div class="d-flex align-items-center gap-3">
+            <i class="bi bi-person-bounding-box text-primary fs-1"></i>
+            <div>
+                <h3 class="fw-bold mb-0">HA Camera Face ID</h3>
+                <small class="text-muted">Nhận diện khuôn mặt Local InsightFace AI (100% Free & Open Source)</small>
+            </div>
+        </div>
+        <span class="badge bg-success fs-6"><i class="bi bi-shield-check"></i> Local AI Ready</span>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <ul class="nav nav-pills mb-4" id="mainTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="dashboard-tab" data-bs-toggle="tab" data-bs-target="#dashboard" type="button"><i class="bi bi-speedometer2"></i> Dashboard</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="persons-tab" data-bs-toggle="tab" data-bs-target="#persons" type="button"><i class="bi bi-people"></i> Quản lý Người</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="cameras-tab" data-bs-toggle="tab" data-bs-target="#cameras" type="button"><i class="bi bi-camera-video"></i> Thêm Camera</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#history" type="button"><i class="bi bi-clock-history"></i> Lịch sử</button>
+        </li>
+    </ul>
+
+    <!-- Tab Contents -->
+    <div class="tab-content" id="mainTabContent">
+        <!-- 1. Dashboard -->
+        <div class="tab-pane fade show active" id="dashboard" role="tabpanel">
+            <div class="row g-4 mb-4">
+                <div class="col-md-4">
+                    <div class="card p-3">
+                        <div class="text-muted small">Mô hình AI</div>
+                        <h4 class="fw-bold mb-0 text-primary">InsightFace (buffalo_sc)</h4>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card p-3">
+                        <div class="text-muted small">Trạng thái MQTT</div>
+                        <h4 class="fw-bold mb-0 text-success"><i class="bi bi-wifi"></i> Connected</h4>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card p-3">
+                        <div class="text-muted small">Cơ chế Bản quyền</div>
+                        <h4 class="fw-bold mb-0 text-info"><i class="bi bi-unlock"></i> Open Source (Free)</h4>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card p-4">
+                <h5 class="fw-bold mb-3"><i class="bi bi-activity"></i> Sự kiện nhận diện realtime</h5>
+                <div id="eventsList" class="d-flex flex-column gap-3">
+                    <div class="text-center text-muted py-4">Đang tải danh sách sự kiện...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Quản lý người -->
+        <div class="tab-pane fade" id="persons" role="tabpanel">
+            <div class="row g-4">
+                <div class="col-md-5">
+                    <div class="card p-4">
+                        <h5 class="fw-bold mb-3"><i class="bi bi-person-plus"></i> Thêm người mới</h5>
+                        <form id="addPersonForm">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Tên người quen:</label>
+                                <input type="text" id="personName" class="form-control" placeholder="Ví dụ: Huy Tran, Vợ, Con..." required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Chọn ảnh mẫu (5-10 ảnh rõ mặt):</label>
+                                <input type="file" id="personPhotos" class="form-control" multiple accept="image/*" required>
+                                <small class="text-muted">Chọn các ảnh góc thẳng, hơi nghiêng để AI nhận diện chính xác nhất.</small>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100 fw-bold"><i class="bi bi-cpu"></i> Thêm & Trích xuất AI Embedding</button>
+                        </form>
+                    </div>
+                </div>
+                <div class="col-md-7">
+                    <div class="card p-4">
+                        <h5 class="fw-bold mb-3"><i class="bi bi-person-lines-fill"></i> Danh sách người đã học</h5>
+                        <div id="personsList">
+                            <div class="text-center text-muted py-4">Đang tải danh sách...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Thêm Camera -->
+        <div class="tab-pane fade" id="cameras" role="tabpanel">
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <div class="card p-4">
+                        <h5 class="fw-bold mb-3"><i class="bi bi-camera"></i> Chọn Camera từ Home Assistant</h5>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Chọn entity camera:</label>
+                            <select id="haCameraSelect" class="form-select"></select>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button id="addCameraBtn" class="btn btn-success fw-bold flex-grow-1"><i class="bi bi-plus-circle"></i> Bật theo dõi Camera này</button>
+                            <button id="testFaceBtn" class="btn btn-outline-primary fw-bold"><i class="bi bi-magic"></i> Test Face ID ngay</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card p-4">
+                        <h5 class="fw-bold mb-3"><i class="bi bi-list-check"></i> Camera đang hoạt động</h5>
+                        <div id="activeCamerasList">
+                            <div class="text-center text-muted py-4">Đang tải...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="testResultBox" class="mt-4"></div>
+        </div>
+
+        <!-- 4. Lịch sử -->
+        <div class="tab-pane fade" id="history" role="tabpanel">
+            <div class="card p-4">
+                <h5 class="fw-bold mb-3"><i class="bi bi-journal-text"></i> Lịch sử nhận diện</h5>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th>Thời gian</th>
+                                <th>Camera</th>
+                                <th>Kết quả AI</th>
+                                <th>Độ chính xác</th>
+                                <th>Ảnh Crop</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyTableBody">
+                            <tr><td colspan="5" class="text-center text-muted">Đang tải...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    async function loadEvents() {
+        const res = await fetch('./api/events');
+        const data = await res.json();
+        
+        let html = '';
+        let tableHtml = '';
+
+        if(data.length === 0) {
+            html = '<div class="text-center text-muted py-4">Chưa có sự kiện nhận diện nào.</div>';
+            tableHtml = '<tr><td colspan="5" class="text-center text-muted">Chưa có dữ liệu</td></tr>';
+        } else {
+            data.forEach(ev => {
+                const isKnown = ev.person_name !== 'Unknown';
+                const badge = isKnown ? 'badge-known' : 'badge-unknown';
+                
+                html += `
+                    <div class="d-flex align-items-center justify-content-between p-3 bg-white rounded border">
+                        <div class="d-flex align-items-center gap-3">
+                            <img src="./static/events/${ev.crop_path}" class="event-card-img shadow-sm" onerror="this.src='https://via.placeholder.com/90'">
+                            <div>
+                                <h5 class="mb-1 font-weight-bold">
+                                    <span class="badge ${badge}">${ev.person_name}</span>
+                                </h5>
+                                <div class="text-muted small"><i class="bi bi-camera"></i> ${ev.camera_entity_id}</div>
+                                <div class="text-muted small"><i class="bi bi-clock"></i> ${ev.created_at}</div>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <div class="fw-bold fs-5 text-primary">${Math.round(ev.similarity * 100)}%</div>
+                            <small class="text-muted">Độ khớp</small>
+                        </div>
+                    </div>
+                `;
+
+                tableHtml += `
+                    <tr>
+                        <td>${ev.created_at}</td>
+                        <td><code>${ev.camera_entity_id}</code></td>
+                        <td><span class="badge ${badge}">${ev.person_name}</span></td>
+                        <td><strong>${Math.round(ev.similarity * 100)}%</strong></td>
+                        <td><img src="./static/events/${ev.crop_path}" width="50" height="50" class="rounded" onerror="this.src='https://via.placeholder.com/50'"></td>
+                    </tr>
+                `;
+            });
+        }
+
+        document.getElementById('eventsList').innerHTML = html;
+        document.getElementById('historyTableBody').innerHTML = tableHtml;
+    }
+
+    async function loadPersons() {
+        const res = await fetch('./api/persons');
+        const data = await res.json();
+        let html = '';
+        if(data.length === 0) {
+            html = '<div class="text-center text-muted py-3">Chưa có người nào được thêm.</div>';
+        } else {
+            data.forEach(p => {
+                html += `
+                    <div class="d-flex align-items-center justify-content-between p-3 border-bottom">
+                        <div>
+                            <h6 class="fw-bold mb-0">${p.name}</h6>
+                            <small class="text-muted">Đã học ${p.sample_count} ảnh khuôn mặt</small>
+                        </div>
+                        <button onclick="deletePerson(${p.id})" class="btn btn-outline-danger btn-sm"><i class="bi bi-trash"></i> Xóa</button>
+                    </div>
+                `;
+            });
+        }
+        document.getElementById('personsList').innerHTML = html;
+    }
+
+    async function deletePerson(id) {
+        if(confirm('Bạn có chắc muốn xóa người này?')) {
+            await fetch(`./api/persons?id=${id}`, { method: 'DELETE' });
+            loadPersons();
+        }
+    }
+
+    document.getElementById('addPersonForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData();
+        formData.append('name', document.getElementById('personName').value);
+        const files = document.getElementById('personPhotos').files;
+        for (let i = 0; i < files.length; i++) {
+            formData.append('photos', files[i]);
+        }
+        const res = await fetch('./api/persons', { method: 'POST', body: formData });
+        const data = await res.json();
+        if(data.success) {
+            alert(`Đã trích xuất xong ${data.uploaded} ảnh mẫu!`);
+            document.getElementById('addPersonForm').reset();
+            loadPersons();
+        } else {
+            alert(data.error || 'Có lỗi xảy ra');
+        }
+    });
+
+    async function loadHACameras() {
+        const res = await fetch('./api/ha_cameras');
+        const data = await res.json();
+        let html = '';
+        data.forEach(c => {
+            html += `<option value="${c.entity_id}">${c.name} (${c.entity_id})</option>`;
+        });
+        document.getElementById('haCameraSelect').innerHTML = html || '<option>Không tìm thấy camera nào</option>';
+    }
+
+    async function loadActiveCameras() {
+        const res = await fetch('./api/active_cameras');
+        const data = await res.json();
+        let html = '';
+        if(data.length === 0) {
+            html = '<div class="text-center text-muted py-3">Chưa theo dõi camera nào.</div>';
+        } else {
+            data.forEach(c => {
+                html += `
+                    <div class="d-flex align-items-center justify-content-between p-3 border-bottom">
+                        <div>
+                            <h6 class="fw-bold mb-0">${c.name || c.entity_id}</h6>
+                            <small class="text-muted"><code>${c.entity_id}</code></small>
+                        </div>
+                        <button onclick="deleteCamera('${c.entity_id}')" class="btn btn-outline-danger btn-sm"><i class="bi bi-trash"></i> Tắt</button>
+                    </div>
+                `;
+            });
+        }
+        document.getElementById('activeCamerasList').innerHTML = html;
+    }
+
+    document.getElementById('addCameraBtn').addEventListener('click', async () => {
+        const entity_id = document.getElementById('haCameraSelect').value;
+        if(entity_id) {
+            await fetch('./api/active_cameras', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ entity_id })
+            });
+            loadActiveCameras();
+        }
+    });
+
+    async function deleteCamera(entity_id) {
+        await fetch(`./api/active_cameras?entity_id=${entity_id}`, { method: 'DELETE' });
+        loadActiveCameras();
+    }
+
+    document.getElementById('testFaceBtn').addEventListener('click', async () => {
+        const entity_id = document.getElementById('haCameraSelect').value;
+        const box = document.getElementById('testResultBox');
+        box.innerHTML = '<div class="alert alert-info">Đang lấy ảnh camera và chạy AI InsightFace...</div>';
+        const res = await fetch('./api/test_face_id', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ entity_id })
+        });
+        const data = await res.json();
+        if(data.error) {
+            box.innerHTML = `<div class="alert alert-danger">${data.error}</div>`;
+        } else if(data.message) {
+            box.innerHTML = `<div class="alert alert-warning">${data.message}</div>`;
+        } else {
+            let resHtml = `<div class="alert alert-success"><h5>Tìm thấy ${data.faces_found} khuôn mặt:</h5><ul>`;
+            data.results.forEach(r => {
+                resHtml += `<li><strong>${r.name}</strong> (Tỷ lệ khớp: ${Math.round(r.similarity*100)}%, BBox Confidence: ${r.score})</li>`;
+            });
+            resHtml += '</ul></div>';
+            box.innerHTML = resHtml;
+        }
+    });
+
+    // Auto poll events every 3s
+    setInterval(loadEvents, 3000);
+    loadEvents();
+    loadPersons();
+    loadHACameras();
+    loadActiveCameras();
+</script>
+</body>
+</html>
